@@ -266,6 +266,9 @@ type DNS01Solver struct {
 	// that the solver doesn't follow CNAME/NS record.
 	OverrideDomain string
 
+	// Override the zone to set the TXT record on.
+	OverrideZone string
+
 	txtRecords   map[string]dnsPresentMemory // keyed by domain name
 	txtRecordsMu sync.Mutex
 }
@@ -288,6 +291,9 @@ func (s *DNS01Solver) Present(ctx context.Context, challenge acme.Challenge) err
 	zone, err := findZoneByFQDN(dnsName, recursiveNameservers(s.Resolvers))
 	if err != nil {
 		return fmt.Errorf("could not determine zone for domain %q: %v", dnsName, err)
+	}
+	if s.OverrideZone != "" {
+		zone = s.OverrideZone
 	}
 
 	rec := libdns.Record{
